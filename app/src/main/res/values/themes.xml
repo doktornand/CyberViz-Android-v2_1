@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.CyberViz" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+</resources>
