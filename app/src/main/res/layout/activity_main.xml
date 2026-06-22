@@ -6,11 +6,7 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <androidx.camera.view.PreviewView
-        android:id="@+id/viewFinder"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:scaleType="fillCenter" />
+    <!-- PreviewView SUPPRIMÉ - L'overlay gère seul l'affichage -->
 
     <com.cyberviz.CyberVizOverlayView
         android:id="@+id/overlayView"
@@ -44,4 +40,4 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
