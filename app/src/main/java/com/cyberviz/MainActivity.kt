@@ -116,17 +116,14 @@ class MainActivity : AppCompatActivity() {
                                                 // Rotation de l'écran pour corriger l'orientation des frames
                                                 val rotation = windowManager.defaultDisplay.rotation
 
-                                                val preview = Preview.Builder()
-                                                .setTargetRotation(rotation)
-                                                .build()
-                                                .also { it.setSurfaceProvider(binding.viewFinder.surfaceProvider) }
+                                                // PreviewView SUPPRIMÉ - Plus besoin de créer le Preview use case
 
                                                 frameAnalyzer = FrameAnalyzer { bitmap ->
                                                     runOnUiThread { binding.overlayView.setBitmap(bitmap) }
                                                 }
 
                                                 imageAnalysis = ImageAnalysis.Builder()
-                                                .setTargetRotation(rotation)          // ← clé pour la rotation
+                                                .setTargetRotation(rotation) // ← clé pour la rotation
                                                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                                                 .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888)
                                                 .build()
@@ -150,7 +147,7 @@ class MainActivity : AppCompatActivity() {
                                                 provider.bindToLifecycle(
                                                     this,
                                                     CameraSelector.DEFAULT_BACK_CAMERA,
-                                                    preview,
+                                                    // preview SUPPRIMÉ - Seulement les ImageAnalysis
                                                     imageAnalysis,
                                                     textAnalysis
                                                 )
