@@ -9,17 +9,13 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Log
-import android.view.Surface
 import android.view.View
-import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.cyberviz.databinding.ActivityMainBinding
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -59,52 +55,33 @@ class MainActivity : AppCompatActivity() {
                                         lightSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_LIGHT)
                                         executor = Executors.newSingleThreadExecutor()
 
-                                        setupModeSelector()
-                                        setupParamSeekBar()
+                                        // Configuration des callbacks de gestes
+                                        binding.overlayView.setOnModeChangeListener(object : CyberVizOverlayView.OnModeChangeListener {
+                                            override fun onModeChanged(mode: ProcessingMode, param: Float) {
+                                                currentMode = mode
+                                                currentParam = param
+                                                frameAnalyzer?.setMode(currentMode, currentParam)
+
+                                                // Feedback visuel
+                                                val message = if (mode.hasParam()) {
+                                                    "${mode.displayName} - ${param.toInt()} ${mode.paramLabel}"
+                                                } else {
+                                                    mode.displayName
+                                                }
+                                                binding.overlayView.showFeedback(message)
+                                            }
+
+                                            override fun onParamChanged(param: Float) {
+                                                currentParam = param
+                                                frameAnalyzer?.setMode(currentMode, currentParam)
+
+                                                // Feedback visuel
+                                                binding.overlayView.showFeedback("${currentMode.displayName} - ${param.toInt()} ${currentMode.paramLabel}")
+                                            }
+                                        })
 
                                         if (allGranted()) startCamera()
                                             else ActivityCompat.requestPermissions(this, PERMISSIONS, REQUEST_CODE)
-                                    }
-
-                                    private fun setupModeSelector() {
-                                        val modes = ProcessingMode.values().toList()
-                                        val adapter = ModeAdapter(modes, currentMode) { selectedMode ->
-                                            currentMode = selectedMode
-                                            currentParam = selectedMode.paramDefault
-                                            frameAnalyzer?.setMode(currentMode, currentParam)
-                                            binding.overlayView.setMode(currentMode, currentParam)
-                                            updateParamSeekBar(selectedMode)
-                                        }
-                                        binding.modeRecycler.layoutManager =
-                                        LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-                                        binding.modeRecycler.adapter = adapter
-                                    }
-
-                                    private fun updateParamSeekBar(mode: ProcessingMode) {
-                                        if (mode.hasParam()) {
-                                            binding.paramSeekBar.visibility = View.VISIBLE
-                                            val range = mode.paramMax - mode.paramMin
-                                            val progress = ((currentParam - mode.paramMin) / range * 100).toInt()
-                                            binding.paramSeekBar.progress = progress.coerceIn(0, 100)
-                                        } else {
-                                            binding.paramSeekBar.visibility = View.GONE
-                                        }
-                                    }
-
-                                    private fun setupParamSeekBar() {
-                                        binding.paramSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                                            override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
-                                                val mode = currentMode
-                                                if (mode.hasParam()) {
-                                                    val range = mode.paramMax - mode.paramMin
-                                                    currentParam = mode.paramMin + (progress / 100f) * range
-                                                    frameAnalyzer?.setMode(mode, currentParam)
-                                                    binding.overlayView.setMode(mode, currentParam)
-                                                }
-                                            }
-                                            override fun onStartTrackingTouch(sb: SeekBar) {}
-                                            override fun onStopTrackingTouch(sb: SeekBar) {}
-                                        })
                                     }
 
                                     private fun startCamera() {
@@ -112,18 +89,14 @@ class MainActivity : AppCompatActivity() {
                                         future.addListener({
                                             try {
                                                 val provider = future.get()
-
-                                                // Rotation de l'écran pour corriger l'orientation des frames
                                                 val rotation = windowManager.defaultDisplay.rotation
-
-                                                // PreviewView SUPPRIMÉ - Plus besoin de créer le Preview use case
 
                                                 frameAnalyzer = FrameAnalyzer { bitmap ->
                                                     runOnUiThread { binding.overlayView.setBitmap(bitmap) }
                                                 }
 
                                                 imageAnalysis = ImageAnalysis.Builder()
-                                                .setTargetRotation(rotation) // ← clé pour la rotation
+                                                .setTargetRotation(rotation)
                                                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                                                 .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888)
                                                 .build()
@@ -147,7 +120,6 @@ class MainActivity : AppCompatActivity() {
                                                 provider.bindToLifecycle(
                                                     this,
                                                     CameraSelector.DEFAULT_BACK_CAMERA,
-                                                    // preview SUPPRIMÉ - Seulement les ImageAnalysis
                                                     imageAnalysis,
                                                     textAnalysis
                                                 )
