@@ -1,0 +1,708 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans, sans-serif); }
+
+  .hero {
+    background: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: 2rem 2rem 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+  .hero-text { flex: 1; }
+  .hero-title {
+    font-size: 22px; font-weight: 500;
+    color: var(--color-text-primary);
+    margin-bottom: 6px;
+  }
+  .hero-sub {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 99px;
+    background: var(--color-background-info);
+    color: var(--color-text-info);
+    font-weight: 500;
+    margin-right: 6px;
+    margin-bottom: 4px;
+  }
+  .badge.success { background: var(--color-background-success); color: var(--color-text-success); }
+  .badge.warn { background: var(--color-background-warning); color: var(--color-text-warning); }
+
+  .section-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    margin: 2rem 0 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title i { font-size: 18px; }
+
+  /* Phone mockup */
+  .phone-wrap {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 2rem;
+  }
+  .phone-container { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .phone-label { font-size: 13px; color: var(--color-text-secondary); text-align: center; max-width: 120px; line-height: 1.4; }
+
+  .phone {
+    width: 108px;
+    height: 192px;
+    background: #111;
+    border-radius: 18px;
+    border: 2px solid #333;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .phone-screen {
+    position: absolute;
+    inset: 6px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+  }
+  .phone-frame {
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    border: 2px solid #444;
+    pointer-events: none;
+  }
+  .phone-notch {
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 32px; height: 7px;
+    background: #111;
+    border-radius: 0 0 8px 8px;
+    z-index: 10;
+  }
+
+  /* Mode pill overlay */
+  .pill-overlay {
+    position: absolute;
+    top: 12px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,200,255,0.18);
+    border: 1px solid rgba(0,200,255,0.5);
+    color: #00e5ff;
+    font-size: 8px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 99px;
+    white-space: nowrap;
+    z-index: 5;
+    letter-spacing: 0.5px;
+  }
+
+  /* Gesture arrow animations */
+  @keyframes swipe-right { 0%{opacity:0;transform:translateX(-18px)} 40%{opacity:1} 100%{opacity:0;transform:translateX(18px)} }
+  @keyframes swipe-left  { 0%{opacity:0;transform:translateX(18px)} 40%{opacity:1} 100%{opacity:0;transform:translateX(-18px)} }
+  @keyframes swipe-up    { 0%{opacity:0;transform:translateY(18px)} 40%{opacity:1} 100%{opacity:0;transform:translateY(-18px)} }
+  @keyframes swipe-down  { 0%{opacity:0;transform:translateY(-18px)} 40%{opacity:1} 100%{opacity:0;transform:translateY(18px)} }
+  @keyframes tap-pulse   { 0%{opacity:0;transform:scale(0.5)} 40%{opacity:1;transform:scale(1)} 100%{opacity:0;transform:scale(1.3)} }
+
+  .gesture-arrow {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 22px;
+    z-index: 6;
+  }
+  .anim-swipe-right { animation: swipe-right 1.6s ease-in-out infinite; }
+  .anim-swipe-left  { animation: swipe-left  1.6s ease-in-out infinite; }
+  .anim-swipe-up    { animation: swipe-up    1.6s ease-in-out infinite; }
+  .anim-swipe-down  { animation: swipe-down  1.6s ease-in-out infinite; }
+  .anim-tap         { animation: tap-pulse   1.6s ease-in-out infinite; }
+
+  /* Screen content */
+  .screen-bg { width:100%; height:100%; position:relative; }
+  .cam-lines { position:absolute; inset:0; }
+  .hud-bar {
+    position:absolute; bottom:8px; left:6px; right:6px;
+    background: rgba(0,0,0,0.6);
+    border: 0.5px solid rgba(0,200,255,0.3);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 7px;
+    color: rgba(0,200,255,0.9);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* Mode list */
+  .mode-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+    margin-bottom: 2rem;
+  }
+  .cat-card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    padding: 1rem 1.25rem;
+  }
+  .cat-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+  }
+  .cat-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .cat-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .cat-count { font-size: 11px; color: var(--color-text-secondary); margin-left: auto; }
+
+  .mode-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+  }
+  .mode-row:last-child { border-bottom: none; }
+  .mode-name { font-size: 12px; font-weight: 500; color: var(--color-text-primary); }
+  .mode-param { font-size: 11px; color: var(--color-text-secondary); font-family: var(--font-mono); }
+  .mode-tag {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--color-background-info);
+    color: var(--color-text-info);
+    white-space: nowrap;
+  }
+
+  /* Steps */
+  .steps { display: flex; flex-direction: column; gap: 12px; margin-bottom: 2rem; }
+  .step-card {
+    display: flex;
+    gap: 14px;
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    padding: 1rem 1.25rem;
+    align-items: flex-start;
+  }
+  .step-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--color-background-info);
+    color: var(--color-text-info);
+    font-size: 13px;
+    font-weight: 500;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-body { flex: 1; }
+  .step-title { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+  .step-desc { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; }
+
+  /* Pathology table */
+  .patho-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-bottom: 2rem;
+  }
+  .patho-table th {
+    text-align: left;
+    padding: 8px 12px;
+    font-weight: 500;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    border-bottom: 0.5px solid var(--color-border-secondary);
+    background: var(--color-background-secondary);
+  }
+  .patho-table th:first-child { border-radius: 6px 0 0 0; }
+  .patho-table th:last-child  { border-radius: 0 6px 0 0; }
+  .patho-table td {
+    padding: 7px 12px;
+    color: var(--color-text-primary);
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    vertical-align: middle;
+  }
+  .patho-table tr:last-child td { border-bottom: none; }
+  .mode-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+  .mpill {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    background: var(--color-background-secondary);
+    color: var(--color-text-secondary);
+    border: 0.5px solid var(--color-border-secondary);
+    padding: 2px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  /* Tip box */
+  .tip-box {
+    background: var(--color-background-warning);
+    border: 0.5px solid var(--color-border-warning);
+    border-radius: var(--border-radius-md);
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--color-text-warning);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+  }
+  .info-box {
+    background: var(--color-background-info);
+    border: 0.5px solid var(--color-border-info);
+    border-radius: var(--border-radius-md);
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--color-text-info);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+  }
+
+  .divider {
+    border: none;
+    border-top: 0.5px solid var(--color-border-tertiary);
+    margin: 2rem 0;
+  }
+</style>
+
+<h2 class="sr-only">Mode d'emploi interactif de l'application CyberViz Android v2.1 — aide à la vision augmentée</h2>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-text">
+    <div class="hero-title">CyberViz Android v2.1 — Mode d'emploi</div>
+    <p class="hero-sub" style="margin-bottom:10px">
+      Prothèse visuelle logicielle en temps réel. Pointez, choisissez votre mode, voyez mieux.
+    </p>
+    <span class="badge">38 modes de traitement</span>
+    <span class="badge success">Aucun réseau requis</span>
+    <span class="badge warn">Android 8.0+</span>
+  </div>
+  <!-- mini logo -->
+  <svg width="64" height="64" viewBox="0 0 64 64" style="flex-shrink:0">
+    <circle cx="32" cy="32" r="30" fill="none" stroke="#00e5ff" stroke-width="1.5" stroke-opacity="0.4"/>
+    <circle cx="32" cy="32" r="18" fill="none" stroke="#00e5ff" stroke-width="1" stroke-opacity="0.6"/>
+    <circle cx="32" cy="32" r="8" fill="#00e5ff" fill-opacity="0.15" stroke="#00e5ff" stroke-width="1.5"/>
+    <circle cx="32" cy="32" r="3" fill="#00e5ff"/>
+    <line x1="32" y1="2"  x2="32" y2="14" stroke="#00e5ff" stroke-width="1" stroke-opacity="0.5"/>
+    <line x1="32" y1="50" x2="32" y2="62" stroke="#00e5ff" stroke-width="1" stroke-opacity="0.5"/>
+    <line x1="2"  y1="32" x2="14" y2="32" stroke="#00e5ff" stroke-width="1" stroke-opacity="0.5"/>
+    <line x1="50" y1="32" x2="62" y2="32" stroke="#00e5ff" stroke-width="1" stroke-opacity="0.5"/>
+  </svg>
+</div>
+
+<!-- DÉMARRAGE RAPIDE -->
+<div class="section-title"><i class="ti ti-player-play" aria-hidden="true"></i> Démarrage rapide</div>
+<div class="steps">
+  <div class="step-card">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <div class="step-title">Autoriser la caméra</div>
+      <div class="step-desc">Au premier lancement, CyberViz demande l'accès à la caméra. Acceptez. C'est la seule permission requise — aucun réseau, aucun stockage.</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <div class="step-title">Pointez votre caméra</div>
+      <div class="step-desc">Le flux vidéo démarre immédiatement en mode <strong>RAW</strong> (image brute, sans traitement). Orientez le téléphone vers ce que vous souhaitez observer.</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <div class="step-title">Glissez pour changer de mode</div>
+      <div class="step-desc">Un glissement <strong>vertical</strong> (haut ou bas) fait défiler les 38 modes. Le nom du mode actif apparaît en incrustation cyan pendant 1,5 seconde.</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <div class="step-title">Affinez avec le glissement horizontal</div>
+      <div class="step-desc">Pour les modes avec paramètre (contraste, zoom, angle, gain…), un glissement <strong>horizontal</strong> ajuste la valeur en temps réel. Le feedback s'affiche instantanément.</div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- GESTES -->
+<div class="section-title"><i class="ti ti-hand-finger" aria-hidden="true"></i> Les 3 gestes à connaître</div>
+
+<div class="phone-wrap">
+
+  <!-- Geste 1 : swipe vertical = changer de mode -->
+  <div class="phone-container">
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="screen-bg" style="background: linear-gradient(160deg,#0a1520 0%,#0d2035 100%);">
+          <svg class="cam-lines" viewBox="0 0 96 156" style="position:absolute;inset:0;width:100%;height:100%">
+            <rect x="4" y="4" width="88" height="148" rx="4" fill="none" stroke="rgba(0,200,255,0.12)" stroke-width="0.5"/>
+            <line x1="48" y1="4" x2="48" y2="152" stroke="rgba(0,200,255,0.06)" stroke-width="0.5"/>
+            <line x1="4" y1="78" x2="92" y2="78" stroke="rgba(0,200,255,0.06)" stroke-width="0.5"/>
+          </svg>
+          <div class="pill-overlay">CONTOURS+</div>
+          <div class="gesture-arrow anim-swipe-up" style="color:#00e5ff; top:45%; margin-top:0;">⬆</div>
+          <div class="hud-bar"><span>mode 6/38</span><span>basse acuité</span></div>
+        </div>
+      </div>
+      <div class="phone-frame"></div>
+    </div>
+    <div class="phone-label">
+      <strong>Glisser verticalement</strong><br>Mode suivant / précédent
+    </div>
+  </div>
+
+  <!-- Geste 2 : swipe horizontal = ajuster param -->
+  <div class="phone-container">
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="screen-bg" style="background: linear-gradient(160deg,#0a1520 0%,#0d2035 100%);">
+          <svg class="cam-lines" viewBox="0 0 96 156" style="position:absolute;inset:0;width:100%;height:100%">
+            <rect x="4" y="4" width="88" height="148" rx="4" fill="none" stroke="rgba(0,200,255,0.12)" stroke-width="0.5"/>
+            <line x1="48" y1="4" x2="48" y2="152" stroke="rgba(0,200,255,0.06)" stroke-width="0.5"/>
+            <line x1="4" y1="78" x2="92" y2="78" stroke="rgba(0,200,255,0.06)" stroke-width="0.5"/>
+          </svg>
+          <div class="pill-overlay">ANTI-EBLOUIS. — 70 force</div>
+          <div class="gesture-arrow anim-swipe-right" style="color:#ffcc00; top:50%; margin-top:0; font-size:18px;">➡</div>
+          <div class="hud-bar"><span>force</span><span style="color:#ffcc00;">70 / 100</span></div>
+        </div>
+      </div>
+      <div class="phone-frame"></div>
+    </div>
+    <div class="phone-label">
+      <strong>Glisser horizontalement</strong><br>Ajuster le paramètre du mode
+    </div>
+  </div>
+
+  <!-- Info: pas de tap -->
+  <div class="phone-container">
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="screen-bg" style="background: linear-gradient(160deg,#0a1520 0%,#0d2035 100%);">
+          <svg class="cam-lines" viewBox="0 0 96 156" style="position:absolute;inset:0;width:100%;height:100%">
+            <rect x="4" y="4" width="88" height="148" rx="4" fill="none" stroke="rgba(0,200,255,0.12)" stroke-width="0.5"/>
+          </svg>
+          <div class="pill-overlay">LECTURE</div>
+          <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 96 156">
+            <rect x="8" y="40" width="80" height="56" rx="3" fill="none" stroke="#00e5ff" stroke-width="1" stroke-dasharray="3 2"/>
+            <text x="10" y="55" font-size="5" fill="rgba(0,200,255,0.7)" font-family="monospace">Zone texte détectée</text>
+            <rect x="10" y="60" width="42" height="4" rx="1" fill="rgba(255,255,255,0.15)"/>
+            <rect x="10" y="68" width="72" height="4" rx="1" fill="rgba(255,255,255,0.15)"/>
+            <rect x="10" y="76" width="58" height="4" rx="1" fill="rgba(255,255,255,0.15)"/>
+            <rect x="10" y="84" width="64" height="4" rx="1" fill="rgba(255,255,255,0.15)"/>
+          </svg>
+          <div class="hud-bar"><span>OCR actif</span><span style="color:#00e5ff;">sensib. 60</span></div>
+        </div>
+      </div>
+      <div class="phone-frame"></div>
+    </div>
+    <div class="phone-label">
+      <strong>Mode LECTURE</strong><br>Cadre cyan sur le texte détecté
+    </div>
+  </div>
+
+</div>
+
+<div class="tip-box">
+  <i class="ti ti-info-circle" aria-hidden="true" style="font-size:16px;flex-shrink:0;margin-top:1px"></i>
+  <span>Si un mode n'a pas de paramètre ajustable (comme RAW, NÉGATIF, GRIS…), le glissement horizontal affiche brièvement le message <em>« Pas de paramètre »</em> sans modifier l'image.</span>
+</div>
+
+<hr class="divider">
+
+<!-- CAPTEUR DE LUMIÈRE -->
+<div class="section-title"><i class="ti ti-sun" aria-hidden="true"></i> Adaptation automatique à la lumière ambiante</div>
+<div class="info-box">
+  <i class="ti ti-bulb" aria-hidden="true" style="font-size:16px;flex-shrink:0;margin-top:1px"></i>
+  <span>CyberViz lit en continu le <strong>capteur de luminosité</strong> du téléphone (lux). Cette valeur est transmise à la couche d'affichage, ce qui permet à certains modes d'adapter automatiquement leur rendu selon que vous êtes dans une pièce sombre, en plein soleil ou dans un environnement fluorescent.</span>
+</div>
+
+<hr class="divider">
+
+<!-- CATALOGUE DES MODES PAR CATÉGORIE -->
+<div class="section-title"><i class="ti ti-adjustments-horizontal" aria-hidden="true"></i> Catalogue complet des 38 modes</div>
+
+<div class="mode-grid">
+
+  <!-- BASE -->
+  <div class="cat-card">
+    <div class="cat-header">
+      <div class="cat-dot" style="background:#888780"></div>
+      <span class="cat-name">Base</span>
+      <span class="cat-count">4 modes</span>
+    </div>
+    <div class="mode-row"><span class="mode-name">RAW</span><span class="mode-param">—</span></div>
+    <div class="mode-row"><span class="mode-name">LUMINOSITE</span><span class="mode-param">expo 0→100</span></div>
+    <div class="mode-row"><span class="mode-name">CONTRASTE</span><span class="mode-param">force 0→100</span></div>
+    <div class="mode-row"><span class="mode-name">GAMMA</span><span class="mode-param">gamma 0.5→5.0</span></div>
+  </div>
+
+  <!-- ACCESSIBILITY -->
+  <div class="cat-card">
+    <div class="cat-header">
+      <div class="cat-dot" style="background:#378ADD"></div>
+      <span class="cat-name">Accessibilité visuelle</span>
+      <span class="cat-count">7 modes</span>
+    </div>
+    <div class="mode-row"><span class="mode-name">HI-CONTRAST</span><span class="mode-param">seuil 50→100</span></div>
+    <div class="mode-row"><span class="mode-name">CONTOURS+</span><span class="mode-param">force 1→20</span></div>
+    <div class="mode-row"><span class="mode-name">CONTOURS</span><span class="mode-param">seuil 5→60</span></div>
+    <div class="mode-row"><span class="mode-name">NÉGATIF</span><span class="mode-param">—</span></div>
+    <div class="mode-row"><span class="mode-name">GRIS</span><span class="mode-param">—</span></div>
+    <div class="mode-row"><span class="mode-name">SEUIL</span><span class="mode-param">seuil 10→245</span></div>
+    <div class="mode-row"><span class="mode-name">ASTIGMATISME</span><span class="mode-param">axe 0°→180°</span></div>
+  </div>
+
+  <!-- COLORBLIND -->
+  <div class="cat-card">
+    <div class="cat-header">
+      <div class="cat-dot" style="background:#1D9E75"></div>
+      <span class="cat-name">Dyschromatopsies</span>
+      <span class="cat-count">7 modes</span>
+    </div>
+    <div class="mode-row"><span class="mode-name">DEUTAN</span><span class="mode-tag">deutéranopie</span></div>
+    <div class="mode-row"><span class="mode-name">PROTAN</span><span class="mode-tag">protanopie</span></div>
+    <div class="mode-row"><span class="mode-name">TRITAN</span><span class="mode-tag">tritanopie</span></div>
+    <div class="mode-row"><span class="mode-name">PAL CHAUD</span><span class="mode-param">—</span></div>
+    <div class="mode-row"><span class="mode-name">PAL FROID</span><span class="mode-param">—</span></div>
+    <div class="mode-row"><span class="mode-name">PAL FEU</span><span class="mode-param">—</span></div>
+    <div class="mode-row"><span class="mode-name">PAL NÉON</span><span class="mode-param">—</span></div>
+  </div>
+
+  <!-- ZOOM -->
+  <div class="cat-card">
+    <div class="cat-header">
+      <div class="cat-dot" style="background:#D85A30"></div>
+      <span class="cat-name">Zoom numérique</span>
+      <span class="cat-count">2 modes</span>
+    </div>
+    <div class="mode-row"><span class="mode-name">ZOOM ×2</span><span class="mode-tag">DMLA</span></div>
+    <div class="mode-row"><span class="mode-name">ZOOM ×4</span><span class="mode-tag">DMLA</span></div>
+  </div>
+
+  <!-- PHOTOSENSITIVITY -->
+  <div class="cat-card">
+    <div class="cat-header">
+      <div class="cat-dot" style="background:#BA7517"></div>
+      <span class="cat-name">Photosensibilité</span>
+      <span class="cat-count">6 modes</span>
+    </div>
+    <div class="mode-row"><span class="mode-name">ANTI-ÉBLOUIS.</span><span class="mode-param">force 0→100</span></div>
+    <div class="mode-row"><span class="mode-name">DÉJAUNISSEMENT</span><span class="mode-param">intens. 0→100</span></div>
+    <div class="mode-row"><span class="mode-name">ANTI-HALO</span><span class="mode-param">seuil 20→150</span></div>
+    <div class="mode-row"><span class="mode-name">ACHROMATOPSIE</span><span class="mode-param">—</span></div>
+    <div class="mode-row"><span class="mode-name">MÉLANOPIE</span><span class="mode-param">—</span></div>
+    <div class="mode-row"><span class="mode-name">ALBINISME</span><span class="mode-param">force 0→100</span></div>
+  </div>
+
+  <!-- FIELD OF VIEW -->
+  <div class="cat-card">
+    <div class="cat-header">
+      <div class="cat-dot" style="background:#7F77DD"></div>
+      <span class="cat-name">Champ visuel</span>
+      <span class="cat-count">5 modes</span>
+    </div>
+    <div class="mode-row"><span class="mode-name">CONTR. LOCAL</span><span class="mode-param">force 0→100</span></div>
+    <div class="mode-row"><span class="mode-name">CHAMP LARGE</span><span class="mode-param">taille 30→90</span></div>
+    <div class="mode-row"><span class="mode-name">HÉMI DROIT</span><span class="mode-param">—</span></div>
+    <div class="mode-row"><span class="mode-name">HÉMI GAUCHE</span><span class="mode-param">—</span></div>
+    <div class="mode-row"><span class="mode-name">EXCENTRATION</span><span class="mode-param">angle 0°→350°</span></div>
+  </div>
+
+  <!-- LOW LIGHT -->
+  <div class="cat-card">
+    <div class="cat-header">
+      <div class="cat-dot" style="background:#0F6E56"></div>
+      <span class="cat-name">Basse luminosité</span>
+      <span class="cat-count">1 mode</span>
+    </div>
+    <div class="mode-row"><span class="mode-name">NYCTALOPIE+</span><span class="mode-param">gain 20→100</span></div>
+  </div>
+
+  <!-- MOTOR -->
+  <div class="cat-card">
+    <div class="cat-header">
+      <div class="cat-dot" style="background:#D4537E"></div>
+      <span class="cat-name">Troubles moteurs</span>
+      <span class="cat-count">2 modes</span>
+    </div>
+    <div class="mode-row"><span class="mode-name">STABILISATION</span><span class="mode-param">lissage 0→90</span></div>
+    <div class="mode-row"><span class="mode-name">MONO OCCLUS.</span><span class="mode-param">altern. 0→100</span><span class="mode-tag">diplopie</span></div>
+  </div>
+
+  <!-- OCR -->
+  <div class="cat-card">
+    <div class="cat-header">
+      <div class="cat-dot" style="background:#185FA5"></div>
+      <span class="cat-name">Lecture (OCR)</span>
+      <span class="cat-count">1 mode</span>
+    </div>
+    <div class="mode-row"><span class="mode-name">LECTURE</span><span class="mode-param">sensib. 20→100</span></div>
+  </div>
+
+  <!-- CREATIVE -->
+  <div class="cat-card">
+    <div class="cat-header">
+      <div class="cat-dot" style="background:#5F5E5A"></div>
+      <span class="cat-name">Créatif / Rééducation</span>
+      <span class="cat-count">6 modes</span>
+    </div>
+    <div class="mode-row"><span class="mode-name">POSTER</span><span class="mode-param">niveaux 2→8</span></div>
+    <div class="mode-row"><span class="mode-name">RELIEF</span><span class="mode-param">—</span></div>
+    <div class="mode-row"><span class="mode-name">FLOU</span><span class="mode-param">—</span></div>
+    <div class="mode-row"><span class="mode-name">NETTETÉ</span><span class="mode-param">force 5→20</span></div>
+    <div class="mode-row"><span class="mode-name">NUIT</span><span class="mode-param">gain 20→100</span></div>
+    <div class="mode-row"><span class="mode-name">CROQUIS</span><span class="mode-param">seuil 10→80</span></div>
+  </div>
+
+</div>
+
+<hr class="divider">
+
+<!-- INDEX PATHOLOGIE → MODES -->
+<div class="section-title"><i class="ti ti-stethoscope" aria-hidden="true"></i> Trouver rapidement le bon mode par pathologie</div>
+
+<table class="patho-table">
+  <thead>
+    <tr>
+      <th>Pathologie</th>
+      <th>Modes recommandés</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>DMLA — scotome central</td>
+      <td><div class="mode-pills"><span class="mpill">ZOOM ×2</span><span class="mpill">ZOOM ×4</span><span class="mpill">EXCENTRATION</span><span class="mpill">LECTURE</span><span class="mpill">CONTR. LOCAL</span></div></td>
+    </tr>
+    <tr>
+      <td>Rétinite pigmentaire</td>
+      <td><div class="mode-pills"><span class="mpill">CHAMP LARGE</span><span class="mpill">CONTR. LOCAL</span><span class="mpill">NYCTALOPIE+</span><span class="mpill">MÉLANOPIE</span></div></td>
+    </tr>
+    <tr>
+      <td>Glaucome avancé</td>
+      <td><div class="mode-pills"><span class="mpill">CHAMP LARGE</span><span class="mpill">HÉMI DROIT</span><span class="mpill">HÉMI GAUCHE</span><span class="mpill">CONTR. LOCAL</span></div></td>
+    </tr>
+    <tr>
+      <td>Cataracte nucléaire</td>
+      <td><div class="mode-pills"><span class="mpill">DÉJAUNISSEMENT</span><span class="mpill">ANTI-ÉBLOUIS.</span><span class="mpill">CONTRASTE</span></div></td>
+    </tr>
+    <tr>
+      <td>Halos post-opératoires</td>
+      <td><div class="mode-pills"><span class="mpill">ANTI-HALO</span><span class="mpill">ANTI-ÉBLOUIS.</span></div></td>
+    </tr>
+    <tr>
+      <td>Deutéranopie</td>
+      <td><div class="mode-pills"><span class="mpill">DEUTAN</span><span class="mpill">PAL CHAUD</span></div></td>
+    </tr>
+    <tr>
+      <td>Protanopie</td>
+      <td><div class="mode-pills"><span class="mpill">PROTAN</span><span class="mpill">PAL FROID</span></div></td>
+    </tr>
+    <tr>
+      <td>Tritanopie</td>
+      <td><div class="mode-pills"><span class="mpill">TRITAN</span></div></td>
+    </tr>
+    <tr>
+      <td>Achromatopsie complète</td>
+      <td><div class="mode-pills"><span class="mpill">ACHROMATOPSIE</span><span class="mpill">NÉGATIF</span><span class="mpill">MÉLANOPIE</span></div></td>
+    </tr>
+    <tr>
+      <td>Albinisme oculo-cutané</td>
+      <td><div class="mode-pills"><span class="mpill">ALBINISME</span><span class="mpill">ANTI-ÉBLOUIS.</span><span class="mpill">NÉGATIF</span></div></td>
+    </tr>
+    <tr>
+      <td>Nyctalopie / Héméralopie</td>
+      <td><div class="mode-pills"><span class="mpill">NYCTALOPIE+</span><span class="mpill">NUIT</span><span class="mpill">PAL NÉON</span></div></td>
+    </tr>
+    <tr>
+      <td>Hémianopsie gauche</td>
+      <td><div class="mode-pills"><span class="mpill">HÉMI DROIT</span></div></td>
+    </tr>
+    <tr>
+      <td>Hémianopsie droite</td>
+      <td><div class="mode-pills"><span class="mpill">HÉMI GAUCHE</span></div></td>
+    </tr>
+    <tr>
+      <td>Diplopie / Strabisme</td>
+      <td><div class="mode-pills"><span class="mpill">MONO OCCLUS.</span></div></td>
+    </tr>
+    <tr>
+      <td>Nystagmus</td>
+      <td><div class="mode-pills"><span class="mpill">STABILISATION</span></div></td>
+    </tr>
+    <tr>
+      <td>Basse acuité générale</td>
+      <td><div class="mode-pills"><span class="mpill">HI-CONTRAST</span><span class="mpill">CONTOURS+</span><span class="mpill">SEUIL</span><span class="mpill">GRIS</span></div></td>
+    </tr>
+    <tr>
+      <td>Astigmatisme (pédagogie)</td>
+      <td><div class="mode-pills"><span class="mpill">ASTIGMATISME</span></div></td>
+    </tr>
+  </tbody>
+</table>
+
+<hr class="divider">
+
+<!-- CONSEILS D'USAGE -->
+<div class="section-title"><i class="ti ti-sparkles" aria-hidden="true"></i> Conseils d'utilisation</div>
+<div class="steps">
+  <div class="step-card">
+    <div class="step-num" style="background:var(--color-background-success);color:var(--color-text-success)">✓</div>
+    <div class="step-body">
+      <div class="step-title">Combiner EXCENTRATION + ZOOM ×2 pour la DMLA</div>
+      <div class="step-desc">Passez d'abord en ZOOM ×2, puis ajustez le mode EXCENTRATION (angle calibré sur le PRL du patient en microperymétrie) pour positionner la zone utile sur la rétine fonctionnelle résiduelle.</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-num" style="background:var(--color-background-success);color:var(--color-text-success)">✓</div>
+    <div class="step-body">
+      <div class="step-title">STABILISATION pour le nystagmus — commencer à lissage 40</div>
+      <div class="step-desc">La valeur par défaut (40) offre un bon équilibre entre fluidité et réactivité. Augmentez progressivement jusqu'à 70–80 si l'oscillation reste perceptible. Au-delà de 80, le mouvement de la scène devient trop atténué.</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-num" style="background:var(--color-background-success);color:var(--color-text-success)">✓</div>
+    <div class="step-body">
+      <div class="step-title">LECTURE en environnement variable — ajustez la sensibilité</div>
+      <div class="step-desc">En lumière faible, montez la sensibilité à 70–80 pour détecter les zones de faible contraste. En pleine lumière ou sur papier blanc, 50–60 suffisent et évitent les faux positifs.</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-num" style="background:var(--color-background-warning);color:var(--color-text-warning)">!</div>
+    <div class="step-body">
+      <div class="step-title">MONO OCCLUSION : côté gauche ou droit selon l'œil déviant</div>
+      <div class="step-desc">Paramètre à 0 → masquage fixe côté gauche. Paramètre à 100 → masquage fixe côté droit. Valeurs intermédiaires → alternance. Le clinicien choisit selon l'œil non directeur ou déviant.</div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:2rem;padding:12px 16px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);font-size:12px;color:var(--color-text-secondary);line-height:1.7;">
+  CyberViz n'est pas un dispositif médical certifié. Il est destiné à un usage de recherche, de démonstration clinique et d'aide à la vie quotidienne. Il ne se substitue pas à une prise en charge ophtalmologique. — <strong>INGEN Systems</strong>
+</div>
