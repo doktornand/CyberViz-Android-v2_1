@@ -6,38 +6,9 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <!-- PreviewView SUPPRIMÉ - L'overlay gère seul l'affichage -->
-
     <com.cyberviz.CyberVizOverlayView
         android:id="@+id/overlayView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-
-    <!-- Sélecteur de modes en bas -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/modeRecycler"
-        android:layout_width="match_parent"
-        android:layout_height="72dp"
-        android:background="#CC000000"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Contrôle du paramètre (SeekBar) -->
-    <SeekBar
-        android:id="@+id/paramSeekBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="72dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:visibility="gone"
-        android:progressTint="#00FFFF"
-        android:thumbTint="#00FFFF"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
