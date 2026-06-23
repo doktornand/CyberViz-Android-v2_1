@@ -1,0 +1,20 @@
+echo $JAVA_HOME
+curl -s "https://get.sdkman.io" | bash
+source "$HOME/.sdkman/bin/sdkman-init.sh"
+sdk install java 17.0.13-tem
+sdk home java 17.0.13-tem
+
+./gradlew --version
+./gradlew clean
+./gradlew assembleDebug --refresh-dependencies
+./gradlew clean assembleDebug
+adb devices
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+
+adb uninstall com.cyberviz
+
+./gradlew installDebug
+
+gradle wrapper --gradle-version 8.2
+
+./gradlew assembleDebug --info
